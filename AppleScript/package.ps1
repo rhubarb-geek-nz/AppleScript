@@ -41,6 +41,7 @@ $moduleSettings = @{
 	VariablesToExport = '*'
 	AliasesToExport = @()
 	ProjectUri = $ProjectUri
+	PowerShellVersion = '7.4'
 	CompatiblePSEditions = @('Core')
 	Tags = @('macOS', 'PSEdition_Core')
 }
