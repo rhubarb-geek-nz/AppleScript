@@ -11,11 +11,15 @@ namespace RhubarbGeekNz.AppleScript
     [Cmdlet(VerbsLifecycle.Invoke, "AppleScript")]
     sealed public class InvokeAppleScript : PSCmdlet
     {
+        const String ParameterSetNameInput = "input";
         const String ParameterSetNameScript = "script";
         const String ParameterSetNameFile = "file";
         const String ParameterSetNameUri = "uri";
 
-        [Parameter(Mandatory = true, Position = 0, ValueFromPipeline = true, ParameterSetName = ParameterSetNameScript)]
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = ParameterSetNameInput)]
+        public String ScriptInput;
+
+        [Parameter(Mandatory = true, Position = 0, ParameterSetName = ParameterSetNameScript)]
         public String ScriptBlock;
 
         [Parameter(Mandatory = true, Position = 0, ParameterSetName = ParameterSetNameFile)]
@@ -24,10 +28,16 @@ namespace RhubarbGeekNz.AppleScript
         [Parameter(Mandatory = true, Position = 0, ParameterSetName = ParameterSetNameUri)]
         public Uri Uri;
 
-        [Parameter(Position = 1)]
+        [Parameter(ParameterSetName = ParameterSetNameInput)]
+        [Parameter(Position = 1, ParameterSetName = ParameterSetNameScript)]
+        [Parameter(Position = 1, ParameterSetName = ParameterSetNameFile)]
+        [Parameter(Position = 1, ParameterSetName = ParameterSetNameUri)]
         public String SubroutineName;
 
-        [Parameter(Position = 2)]
+        [Parameter(ParameterSetName = ParameterSetNameInput)]
+        [Parameter(Position = 2, ValueFromPipeline = true, ParameterSetName = ParameterSetNameScript)]
+        [Parameter(Position = 2, ValueFromPipeline = true, ParameterSetName = ParameterSetNameFile)]
+        [Parameter(Position = 2, ValueFromPipeline = true, ParameterSetName = ParameterSetNameUri)]
         public object[] ArgumentList;
 
         protected override void ProcessRecord()
@@ -38,6 +48,12 @@ namespace RhubarbGeekNz.AppleScript
 
             switch (ParameterSetName)
             {
+                case ParameterSetNameInput:
+                    {
+                        IntPtr stringPtr = NSString.FromString(ScriptInput);
+                        appleScript = ObjC.msgSend(appleScript, NSAppleScript.initWithSource, stringPtr);
+                    }
+                    break;
                 case ParameterSetNameScript:
                     {
                         IntPtr stringPtr = NSString.FromString(ScriptBlock);

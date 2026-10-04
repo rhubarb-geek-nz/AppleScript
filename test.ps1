@@ -48,4 +48,8 @@ catch
 	Write-Warning $_.Exception.Message
 }
 
+"-- pipe parameter and invoke a handler"
+
+"Hello World" | Invoke-AppleScript -FileInfo "$PSScriptRoot/test.applescript" echo
+
 "-- done"

@@ -6,6 +6,8 @@ AppleScript for PowerShell
 This runs [AppleScript](https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html) either from text in memory or a file.
 
 ```
+Invoke-AppleScript -ScriptInput <string> [-SubroutineName <string>] [-ArgumentList <Object[]>] [<CommonParameters>]
+
 Invoke-AppleScript [-ScriptBlock] <string> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [<CommonParameters>]
 
 Invoke-AppleScript [-FileInfo] <FileInfo> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [<CommonParameters>]
@@ -13,7 +15,7 @@ Invoke-AppleScript [-FileInfo] <FileInfo> [[-SubroutineName] <string>] [[-Argume
 Invoke-AppleScript [-Uri] <uri> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [<CommonParameters>]
 ```
 
-See [test.ps1](test.ps1) for examples.
+See [test.ps1](test.ps1) for examples. This demonstrates using [test.applescript](test.applescript) as a library of [AppleScript handlers](https://developer.apple.com/library/archive/documentation/LanguagesUtilities/Conceptual/MacAutomationScriptingGuide/UseHandlersFunctions.html).
 
 ## Implementation Notes
 
@@ -33,4 +35,4 @@ The four character [DescType](https://developer.apple.com/documentation/coreserv
 
 ## Gotchas
 
-This mechanism is for executing independent scripts, or scripts with subroutines defined. It cannot run the 'on run argv' type scripts, this is a known problem. This implementation uses kASAppleScriptSuite:kASSubroutineEvent along with keyASSubroutineName and keyDirectObject.
+This mechanism is for executing independent scripts, or scripts with subroutines defined. It cannot run 'on run argv' with arguments, this is a known problem. This implementation uses kASAppleScriptSuite:kASSubroutineEvent along with keyASSubroutineName and keyDirectObject.

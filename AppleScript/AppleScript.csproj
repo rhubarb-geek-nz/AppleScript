@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>RhubarbGeekNz.AppleScript</AssemblyName>
     <Copyright>Copyright © 2026 Roger Brown</Copyright>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <AssemblyTitle>PowerShell AppleScript Cmdlet</AssemblyTitle>
     <Product>AppleScript for PowerShell</Product>
     <Company>rhubarb-geek-nz</Company>

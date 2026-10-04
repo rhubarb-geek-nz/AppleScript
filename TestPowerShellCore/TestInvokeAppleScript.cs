@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 #endif
 using System;
 using System.Collections;
+using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
@@ -16,6 +17,8 @@ namespace RhubarbGeekNz.AppleScript
     [TestClass]
     public class TestInvokeAppleScript
     {
+        const String testAppleScriptPath="../../../../test.applescript";
+
         readonly InitialSessionState initialSessionState = InitialSessionState.CreateDefault();
         public TestInvokeAppleScript()
         {
@@ -34,7 +37,18 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestReturnNumberAsScriptBlock()
+        public void TestFileInfo()
+        {
+            FileInfo f1=new FileInfo(testAppleScriptPath);
+
+            Assert.IsTrue(f1.Exists);
+
+            String [] list=File.ReadAllLines(testAppleScriptPath);
+            Assert.AreEqual("-- Copyright (c) 2026 Roger Brown.", list[0]);
+        }
+
+        [TestMethod]
+        public void TestReturnNumberAsScriptBlock()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -51,7 +65,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestReturnNumberAsPipeline()
+        public void TestReturnNumberAsPipeline()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -68,7 +82,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestMultiplyAsScriptBlock()
+        public void TestMultiplyAsScriptBlock()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -93,7 +107,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestMultiplyAsWithIntegers()
+        public void TestMultiplyAsWithIntegers()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -118,7 +132,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoString()
+        public void TestEchoString()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -143,7 +157,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoInt32()
+        public void TestEchoInt32()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -168,7 +182,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoBool()
+        public void TestEchoBool()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -193,7 +207,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoDouble()
+        public void TestEchoDouble()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -219,7 +233,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoDateTime()
+        public void TestEchoDateTime()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -248,7 +262,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoFileUrl()
+        public void TestEchoFileUrl()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -275,7 +289,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoHashTable()
+        public void TestEchoHashTable()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -304,7 +318,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoPSCustomObject()
+        public void TestEchoPSCustomObject()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -334,7 +348,179 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoErrorWithArguments()
+        public void TestEchoWithFileInfoAsFileInfo()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand("Invoke-AppleScript")
+                    .AddParameter("FileInfo",new FileInfo(testAppleScriptPath))
+                    .AddParameter("ArgumentList",new object[]{"foo"})
+                    .AddParameter("SubroutineName","echo");
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo",result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoWithFileInfoAsString()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand("Invoke-AppleScript")
+                    .AddParameter("FileInfo",testAppleScriptPath)
+                    .AddParameter("ArgumentList",new object[]{"foo"})
+                    .AddParameter("SubroutineName","echo");
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo",result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoWithFileInfoAsArguments()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand("Invoke-AppleScript")
+                    .AddArgument(new FileInfo(testAppleScriptPath))
+                    .AddArgument("echo")
+                    .AddArgument(new object[]{"foo"});
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo",result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoWithFileInfoAndArgumentListAsInput()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand("Invoke-AppleScript")
+                    .AddArgument(new FileInfo(testAppleScriptPath))
+                    .AddArgument("echo");
+
+                var outputPipeline = powerShell.Invoke(new object[]{"foo","bar"});
+
+                Assert.AreEqual(2, outputPipeline.Count);
+
+                Assert.AreEqual("foo",(String)outputPipeline[0].BaseObject);
+                Assert.AreEqual("bar",(String)outputPipeline[1].BaseObject);
+            }
+        }
+        [TestMethod]
+        public void TestEchoWithFileReadAsArguments()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand("Invoke-AppleScript")
+                    .AddArgument(File.ReadAllText(testAppleScriptPath))
+                    .AddArgument("echo")
+                    .AddArgument(new object[]{"foo"});
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo",result);
+            }
+        }
+
+        [TestMethod]
+        public void TestOnRunWithFileReadAsInputNoArguments()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand("Invoke-AppleScript");
+                var outputPipeline = powerShell.Invoke(new String[]{File.ReadAllText(testAppleScriptPath)});
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("Hello World",result);
+            }
+        }
+
+        [TestMethod]
+        public void TestHelloWorldWithFileReadAsInputWithHelloMustFail()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                bool wasCaught=false;
+                try
+                {
+                    powerShell.AddCommand("Invoke-AppleScript").AddArgument("hello");
+                    var outputPipeline = powerShell.Invoke(new String[]{File.ReadAllText(testAppleScriptPath)});
+                }
+                catch (ActionPreferenceStopException)
+                {
+                    wasCaught=true;
+                }
+
+                Assert.IsTrue(wasCaught,"Must be an exception to catch");
+            }
+        }
+
+        [TestMethod]
+        public void TestHelloWorldWithFileReadAsInputWithSubroutineNameHello()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand("Invoke-AppleScript").AddParameter("SubroutineName","hello");
+
+                var outputPipeline = powerShell.Invoke(new String[]{File.ReadAllText(testAppleScriptPath)});
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("Hello",result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoWithUriAsArguments()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                FileInfo info=new FileInfo(testAppleScriptPath);
+                Uri uri=new Uri("file://"+info.FullName);
+                powerShell.AddCommand("Invoke-AppleScript")
+                    .AddArgument(uri)
+                    .AddArgument("echo")
+                    .AddArgument(new object[]{"foo"});
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo",result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoErrorWithArgumentsMustThrow1708()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
@@ -366,7 +552,7 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public async Task TestEchoErrorWithScript()
+        public void TestEchoErrorWithScriptMustThrow2753()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {

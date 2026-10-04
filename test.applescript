@@ -8,3 +8,11 @@ end echo
 on add(a,b)
 	return a + b
 end add
+
+on hello()
+	return "Hello"
+end hello
+
+on run argv
+	return "Hello World"
+end run
