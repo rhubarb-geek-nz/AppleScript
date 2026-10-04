@@ -11,9 +11,6 @@ namespace RhubarbGeekNz.AppleScript
         private const string FoundationLibrary = "/System/Library/Frameworks/Foundation.framework/Foundation";
 
         [LibraryImport(FoundationLibrary)]
-        public static partial IntPtr NSClassFromString(IntPtr className);
-
-        [LibraryImport(FoundationLibrary)]
         public static partial IntPtr NSGetSizeAndAlignment(IntPtr p, out IntPtr size, out IntPtr align);
     }
 }
