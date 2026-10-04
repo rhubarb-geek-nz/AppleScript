@@ -6,7 +6,7 @@ AppleScript for PowerShell
 This runs [AppleScript](https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html) either from text in memory or a file.
 
 ```
-Invoke-AppleScript -ScriptInput <string> [-SubroutineName <string>] [-ArgumentList <Object[]>] [<CommonParameters>]
+Invoke-AppleScript -InputScript <string> [-SubroutineName <string>] [-ArgumentList <Object[]>] [<CommonParameters>]
 
 Invoke-AppleScript [-ScriptBlock] <string> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [<CommonParameters>]
 

@@ -52,4 +52,8 @@ catch
 
 "Hello World" | Invoke-AppleScript -FileInfo "$PSScriptRoot/test.applescript" echo
 
+"-- pipe a plain script"
+
+'return "Hello World"' | Invoke-AppleScript
+
 "-- done"

@@ -17,7 +17,7 @@ namespace RhubarbGeekNz.AppleScript
         const String ParameterSetNameUri = "uri";
 
         [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = ParameterSetNameInput)]
-        public String ScriptInput;
+        public String InputScript;
 
         [Parameter(Mandatory = true, Position = 0, ParameterSetName = ParameterSetNameScript)]
         public String ScriptBlock;
@@ -50,7 +50,7 @@ namespace RhubarbGeekNz.AppleScript
             {
                 case ParameterSetNameInput:
                     {
-                        IntPtr stringPtr = NSString.FromString(ScriptInput);
+                        IntPtr stringPtr = NSString.FromString(InputScript);
                         appleScript = ObjC.msgSend(appleScript, NSAppleScript.initWithSource, stringPtr);
                     }
                     break;
