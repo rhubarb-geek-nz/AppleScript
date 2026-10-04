@@ -10,7 +10,7 @@
     <Company>rhubarb-geek-nz</Company>
     <PackageId>rhubarb-geek-nz.AppleScript</PackageId>
     <Title>AppleScript Cmdlet for PowerShell</Title>
-    <Description>AppleScript Tools</Description>
+    <Description>This uses NSAppleScript to perform the execution within the PowerShell process. No native binary or support application is used. Handlers within scripts can be invoked by name and passed a list of arguments. Translation is performed between the common NSAppleEventDescriptor types and PowerShell objects. Scripts can be passed directly as strings or by path to the file.</Description>
     <Authors>Roger Brown</Authors>
     <PackageProjectUrl>https://github.com/rhubarb-geek-nz/AppleScript</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rhubarb-geek-nz/AppleScript.git</RepositoryUrl>
