@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AppleScript/AppleScript.csproj" />
+  <Project Path="TestPowerShellCore/TestPowerShellCore.csproj" />
+</Solution>
