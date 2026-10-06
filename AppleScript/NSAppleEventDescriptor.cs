@@ -3,12 +3,21 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Management.Automation;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Xml;
 
 namespace RhubarbGeekNz.AppleScript
 {
-    internal static class NSAppleEventDescriptor
+    internal class NSAppleEventDescriptor
     {
+        int nesting = 0;
+        internal NSAppleEventDescriptor()
+        {
+        }
+
         internal static IntPtr stringValue = ObjC.sel_registerName("stringValue");
         internal static IntPtr doubleValue = ObjC.sel_registerName("doubleValue");
         internal static IntPtr dateValue = ObjC.sel_registerName("dateValue");
@@ -63,119 +72,35 @@ namespace RhubarbGeekNz.AppleScript
         internal const Int32 keyDirectObject = 0x2D2D2D2D; // ----
         internal const Int32 keyASSubroutineName = 0x736E616D; // snam
 
-        static internal IntPtr DescriptorFromObject(object obj)
+        private static readonly IDictionary<Type, Func<object, IntPtr>> descriptorFromTable = new Dictionary<Type, Func<object, IntPtr>>()
+        {
+            {typeof(bool),o=>{bool b=(bool)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithBoolean, b);}},
+            {typeof(byte),o=>{byte b=(byte)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)b);}},
+            {typeof(SByte),o=>{SByte sb=(SByte)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)sb);}},
+            {typeof(Int16),o=>{Int16 i16=(Int16)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i16);}},
+            {typeof(UInt16),o=>{UInt16 i16=(UInt16)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i16);}},
+            {typeof(Int32),o=>{Int32 i32=(Int32)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, i32);}},
+            {typeof(UInt32),o=>{UInt32 i32=(UInt32)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i32);}},
+            {typeof(Int64),o=>{Int64 i64=(Int64)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i64);}},
+            {typeof(UInt64),o=>{UInt64 i64=(UInt64)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i64);}},
+            {typeof(IntPtr),o=>{IntPtr iPtr=(IntPtr)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, iPtr.ToInt32());}},
+            {typeof(double),o=>{double d=(double)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, d);;}},
+            {typeof(float),o=>{float d=(float)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, (double)d);;}},
+            {typeof(decimal),o=>{decimal d=(decimal)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, (double)d);;}},
+            {typeof(String),o=>{ String str=(String)o; IntPtr strPtr=NSString.FromString(str);
+                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);}}
+        };
+
+        internal IntPtr DescriptorFromObject(object obj)
         {
             if (obj == null)
             {
                 return ObjC.msgSend(NSClass.NSAppleEventDescriptor, nullDescriptor);
             }
 
-            if (obj is String str)
+            if (descriptorFromTable.TryGetValue(obj.GetType(), out var func))
             {
-                IntPtr strPtr = NSString.FromString(str);
-                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
-            }
-
-            if (obj is PSObject psobj)
-            {
-                if (psobj.BaseObject is PSCustomObject pscust)
-                {
-                    int n = 1;
-                    IntPtr desc = ObjC.msgSend(NSClass.NSAppleEventDescriptor, recordDescriptor);
-                    IntPtr list = ObjC.msgSend(NSClass.NSAppleEventDescriptor, listDescriptor);
-                    foreach (var de in psobj.Properties)
-                    {
-                        if (de.MemberType == PSMemberTypes.NoteProperty)
-                        {
-                            IntPtr key = DescriptorFromObject(de.Name);
-                            IntPtr value = DescriptorFromObject(de.Value);
-                            ObjC.msgSend(list, insertDescriptorAtIndex, key, n++);
-                            ObjC.msgSend(list, insertDescriptorAtIndex, value, n++);
-                        }
-                    }
-                    ObjC.msgSend(desc, setDescriptorForKeyword, list, keyASUserRecordFields);
-                    return desc;
-                }
-                else
-                {
-                    return DescriptorFromObject(psobj.BaseObject);
-                }
-            }
-
-            if (obj is IDictionary d)
-            {
-                int n = 1;
-                IntPtr desc = ObjC.msgSend(NSClass.NSAppleEventDescriptor, recordDescriptor);
-                bool isTrueRecord = true;
-                foreach (var k in d.Keys)
-                {
-                    if (k is Int32 resType)
-                    {
-                        if (resType == keyASUserRecordFields)
-                        {
-                            isTrueRecord = false;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        isTrueRecord = false;
-                        break;
-                    }
-                }
-
-                if (isTrueRecord)
-                {
-                    foreach (DictionaryEntry de in d)
-                    {
-                        Int32 key = (Int32)de.Key;
-                        IntPtr value = DescriptorFromObject(de.Value);
-                        ObjC.msgSend(desc, setDescriptorForKeyword, key, value);
-                    }
-                }
-                else
-                {
-                    IntPtr list = ObjC.msgSend(NSClass.NSAppleEventDescriptor, listDescriptor);
-                    foreach (DictionaryEntry de in d)
-                    {
-                        IntPtr key = DescriptorFromObject(de.Key);
-                        IntPtr value = DescriptorFromObject(de.Value);
-                        ObjC.msgSend(list, insertDescriptorAtIndex, key, n++);
-                        ObjC.msgSend(list, insertDescriptorAtIndex, value, n++);
-                    }
-                    ObjC.msgSend(desc, setDescriptorForKeyword, list, keyASUserRecordFields);
-                }
-                return desc;
-            }
-
-            if (obj is IEnumerable e)
-            {
-                IntPtr listParams = ObjC.msgSend(NSClass.NSAppleEventDescriptor, listDescriptor);
-                int n = 1;
-
-                foreach (var o in e)
-                {
-                    IntPtr desc = DescriptorFromObject(o);
-                    ObjC.msgSend(listParams, insertDescriptorAtIndex, desc, n);
-                    n++;
-                }
-
-                return listParams;
-            }
-
-            if (obj is Int32 i32)
-            {
-                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, i32);
-            }
-
-            if (obj is bool b)
-            {
-                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithBoolean, b);
-            }
-
-            if (obj is double dbl)
-            {
-                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, dbl);
+                return func(obj);
             }
 
             if (obj is DateTime dt)
@@ -195,7 +120,249 @@ namespace RhubarbGeekNz.AppleScript
                 return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithFileURL, uriPtr);
             }
 
-            throw new Exception($"Conversion of {obj.GetType().FullName} to descriptor failed");
+            if (obj is XmlNode xml)
+            {
+                IntPtr strPtr = NSString.FromString(xml.OuterXml);
+                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
+            }
+
+            if (obj is JsonNode node)
+            {
+                IntPtr strPtr = NSString.FromString(JsonSerializer.Serialize(node));
+                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
+            }
+
+            if (nesting > 20)
+            {
+                throw new ParseException();
+            }
+
+            nesting++;
+
+            try
+            {
+                if (obj is PSObject psobj)
+                {
+                    if (psobj.BaseObject is PSCustomObject pscust)
+                    {
+                        int n = 1;
+                        IntPtr desc = ObjC.msgSend(NSClass.NSAppleEventDescriptor, recordDescriptor);
+                        IntPtr list = ObjC.msgSend(NSClass.NSAppleEventDescriptor, listDescriptor);
+                        foreach (var de in psobj.Properties)
+                        {
+                            if (de.MemberType == PSMemberTypes.NoteProperty)
+                            {
+                                IntPtr key = DescriptorFromObject(de.Name);
+                                IntPtr value = DescriptorFromObject(de.Value);
+                                ObjC.msgSend(list, insertDescriptorAtIndex, key, n++);
+                                ObjC.msgSend(list, insertDescriptorAtIndex, value, n++);
+                            }
+                        }
+                        ObjC.msgSend(desc, setDescriptorForKeyword, list, keyASUserRecordFields);
+                        return desc;
+                    }
+                    else
+                    {
+                        return DescriptorFromObject(psobj.BaseObject);
+                    }
+                }
+
+                if (obj is IDictionary d)
+                {
+                    int n = 1;
+                    IntPtr desc = ObjC.msgSend(NSClass.NSAppleEventDescriptor, recordDescriptor);
+                    bool isTrueRecord = true;
+                    foreach (var k in d.Keys)
+                    {
+                        if (k is Int32 resType)
+                        {
+                            if (resType == keyASUserRecordFields)
+                            {
+                                isTrueRecord = false;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            isTrueRecord = false;
+                            break;
+                        }
+                    }
+
+                    if (isTrueRecord)
+                    {
+                        foreach (DictionaryEntry de in d)
+                        {
+                            Int32 key = (Int32)de.Key;
+                            IntPtr value = DescriptorFromObject(de.Value);
+                            ObjC.msgSend(desc, setDescriptorForKeyword, key, value);
+                        }
+                    }
+                    else
+                    {
+                        IntPtr list = ObjC.msgSend(NSClass.NSAppleEventDescriptor, listDescriptor);
+                        foreach (DictionaryEntry de in d)
+                        {
+                            IntPtr key = DescriptorFromObject(de.Key);
+                            IntPtr value = DescriptorFromObject(de.Value);
+                            ObjC.msgSend(list, insertDescriptorAtIndex, key, n++);
+                            ObjC.msgSend(list, insertDescriptorAtIndex, value, n++);
+                        }
+                        ObjC.msgSend(desc, setDescriptorForKeyword, list, keyASUserRecordFields);
+                    }
+                    return desc;
+                }
+
+                if (obj is IEnumerable e)
+                {
+                    IntPtr listParams = ObjC.msgSend(NSClass.NSAppleEventDescriptor, listDescriptor);
+                    int n = 1;
+
+                    foreach (var o in e)
+                    {
+                        IntPtr desc = DescriptorFromObject(o);
+                        ObjC.msgSend(listParams, insertDescriptorAtIndex, desc, n);
+                        n++;
+                    }
+
+                    return listParams;
+                }
+
+                {
+                    int n = 1;
+                    IntPtr desc = ObjC.msgSend(NSClass.NSAppleEventDescriptor, recordDescriptor);
+                    IntPtr list = ObjC.msgSend(NSClass.NSAppleEventDescriptor, listDescriptor);
+                    foreach (var prop in obj.GetType().GetProperties())
+                    {
+                        var gm = prop.GetMethod;
+
+                        if (gm != null)
+                        {
+                            if (!gm.IsStatic)
+                            {
+                                IntPtr strPtr = NSString.FromString(prop.Name);
+                                IntPtr key = ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
+                                IntPtr value = DescriptorFromObject(prop.GetValue(obj));
+                                ObjC.msgSend(list, insertDescriptorAtIndex, key, n++);
+                                ObjC.msgSend(list, insertDescriptorAtIndex, value, n++);
+                            }
+                        }
+                    }
+                    ObjC.msgSend(desc, setDescriptorForKeyword, list, keyASUserRecordFields);
+
+                    return desc;
+                }
+            }
+            finally
+            {
+                nesting--;
+            }
+        }
+
+        private static readonly IDictionary<int, Func<IntPtr, object>> objectFromDescriptor = new Dictionary<int, Func<IntPtr, object>>()
+        {
+            {typeIEEE64BitFloatingPoint,obj=>{return ObjC.msgSend_fpret(obj, doubleValue);}},
+            {typeSInt32,obj=>{return (Int32)ObjC.msgSend(obj, int32Value);}},
+            {typeSInt16,obj=>{return (Int16)ObjC.msgSend(obj, int32Value);}},
+            {typeNull,obj=>{return null;}},
+            {typeTrue,obj=>{return true;}},
+            {typeFalse,obj=>{return false;}},
+            {typeChar,obj=>{return NSString.ToString(ObjC.msgSend(obj, stringValue));}},
+            {typeUnicodeText,obj=>{return NSString.ToString(ObjC.msgSend(obj, stringValue));}},
+            {typeLongDateTime,obj=>{
+                IntPtr dateObj = ObjC.msgSend(obj, dateValue);
+                double seconds = ObjC.msgSend_fpret(dateObj, timeIntervalSince1970);
+                DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(0);
+                return dateTimeOffset.UtcDateTime.AddSeconds(seconds);}},
+            {typeAEList,obj=>{
+                IntPtr count = ObjC.msgSend(obj, numberOfItems);
+                IntPtr index = 0;
+                object[] result = new object[count];
+                while (index < count)
+                {
+                    IntPtr item = ObjC.msgSend(obj, descriptorAtIndex, 1 + index);
+                    result[index] = ObjectFromDescriptor(item);
+                    index++;
+                }
+                return result;}},
+            {typeType,obj=>{
+                Int32 typeCode = (Int32)ObjC.msgSend(obj, typeCodeValue);
+                if (typeCode == typeNull) // null
+                {
+                    return null;
+                }
+                Hashtable table = new Hashtable();
+                table.Add("type", typeType);
+                table.Add("data", typeCode);
+                return table;}},
+            {typeFileURL,obj=>{
+                IntPtr urlPtr = ObjC.msgSend(obj, fileURLValue);
+                IntPtr strPtr = ObjC.msgSend(urlPtr, absoluteString);
+                String str = NSString.ToString(strPtr);
+                return new Uri(str);}}
+        };
+
+        static internal object ObjectFromDescriptor(IntPtr obj)
+        {
+            if (obj == IntPtr.Zero) return null;
+
+            if (0 != (byte)ObjC.msgSend(obj, isRecordDescriptor))
+            {
+                Hashtable table = new Hashtable();
+                IntPtr list = ObjC.msgSend(obj, descriptorForKeyword, keyASUserRecordFields);
+
+                if (list != IntPtr.Zero)
+                {
+                    long count = ObjC.msgSend(list, numberOfItems);
+                    if (0 == (count & 1))
+                    {
+                        count >>= 1;
+                        int n = 1;
+                        while (0 != count--)
+                        {
+                            IntPtr name = ObjC.msgSend(list, descriptorAtIndex, n++);
+                            IntPtr value = ObjC.msgSend(list, descriptorAtIndex, n++);
+                            table.Add(ObjectFromDescriptor(name), ObjectFromDescriptor(value));
+                        }
+                    }
+                }
+                else
+                {
+                    long count = ObjC.msgSend(obj, numberOfItems);
+                    int n = 1;
+                    while (0 != count--)
+                    {
+                        Int32 name = (Int32)ObjC.msgSend(obj, keywordForDescriptorAtIndex, n);
+                        IntPtr value = ObjC.msgSend(obj, descriptorAtIndex, n);
+                        table.Add(name, ObjectFromDescriptor(value));
+                        n++;
+                    }
+                }
+
+                return table;
+            }
+
+            Int32 type = (Int32)ObjC.msgSend(obj, descriptorType);
+
+            if (objectFromDescriptor.TryGetValue(type, out var func))
+            {
+                return func(obj);
+            }
+
+            Hashtable tableofLastResort = new Hashtable();
+            IntPtr ptr = ObjC.msgSend(obj, data);
+            object valueOfLastResort;
+            if (ptr != IntPtr.Zero)
+            {
+                valueOfLastResort = NSData.GetBytes(ptr);
+            }
+            else
+            {
+                valueOfLastResort = null;
+            }
+            tableofLastResort.Add(keyAEDescType, type);
+            tableofLastResort.Add(keyAEData, valueOfLastResort);
+            return tableofLastResort;
         }
 
         static internal object ObjectFromIntPtr(IntPtr obj)
@@ -205,135 +372,6 @@ namespace RhubarbGeekNz.AppleScript
             if (NSObject.IsKindOfClass(obj, NSClass.NSString))
             {
                 return NSString.ToString(obj);
-            }
-
-            if (NSObject.IsKindOfClass(obj, NSClass.NSAppleEventDescriptor))
-            {
-                Int32 type = (Int32)ObjC.msgSend(obj, descriptorType);
-
-                if (0 != (byte)ObjC.msgSend(obj, isRecordDescriptor))
-                {
-                    Hashtable table = new Hashtable();
-                    IntPtr list = ObjC.msgSend(obj, descriptorForKeyword, keyASUserRecordFields);
-
-                    if (list != IntPtr.Zero)
-                    {
-                        long count = ObjC.msgSend(list, numberOfItems);
-                        if (0 == (count & 1))
-                        {
-                            count >>= 1;
-                            int n = 1;
-                            while (0 != count--)
-                            {
-                                IntPtr name = ObjC.msgSend(list, descriptorAtIndex, n++);
-                                IntPtr value = ObjC.msgSend(list, descriptorAtIndex, n++);
-                                table.Add(ObjectFromIntPtr(name), ObjectFromIntPtr(value));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        long count = ObjC.msgSend(obj, numberOfItems);
-                        int n = 1;
-                        while (0 != count--)
-                        {
-                            Int32 name = (Int32)ObjC.msgSend(obj, keywordForDescriptorAtIndex, n);
-                            IntPtr value = ObjC.msgSend(obj, descriptorAtIndex, n);
-                            table.Add(name, ObjectFromIntPtr(value));
-                            n++;
-                        }
-                    }
-
-                    return table;
-                }
-
-                switch (type)
-                {
-                    case typeChar: // TEXT
-                    case typeUnicodeText: // utxt
-                        return NSString.ToString(ObjC.msgSend(obj, stringValue));
-
-                    case typeTrue: // true
-                        return true;
-
-                    case typeFalse: // fals
-                        return false;
-
-                    case typeNull: // null
-                        return null;
-
-                    case typeIEEE64BitFloatingPoint: // doub
-                        return ObjC.msgSend_fpret(obj, doubleValue);
-
-                    case typeSInt32: // long
-                        return (Int32)ObjC.msgSend(obj, int32Value);
-
-                    case typeSInt16: // shor
-                        return (Int16)ObjC.msgSend(obj, int32Value);
-
-                    case typeLongDateTime: // 'ldt '
-                        {
-                            IntPtr dateObj = ObjC.msgSend(obj, dateValue);
-                            return ObjectFromIntPtr(dateObj);
-                        }
-
-                    case typeAEList: // list
-                        {
-                            IntPtr count = ObjC.msgSend(obj, numberOfItems);
-                            IntPtr index = 0;
-                            object[] result = new object[count];
-
-                            while (index < count)
-                            {
-                                IntPtr item = ObjC.msgSend(obj, descriptorAtIndex, 1 + index);
-                                result[index] = ObjectFromIntPtr(item);
-                                index++;
-                            }
-
-                            return result;
-                        }
-
-                    case typeType: // type
-                        {
-                            Int32 typeCode = (Int32)ObjC.msgSend(obj, typeCodeValue);
-
-                            if (typeCode == typeNull) // null
-                            {
-                                return null;
-                            }
-
-                            Hashtable table = new Hashtable();
-                            table.Add("type", type);
-                            table.Add("data", typeCode);
-                            return table;
-                        }
-
-                    case typeFileURL: // furl
-                        {
-                            IntPtr urlPtr = ObjC.msgSend(obj, fileURLValue);
-                            IntPtr strPtr = ObjC.msgSend(urlPtr, absoluteString);
-                            String str = NSString.ToString(strPtr);
-                            return new Uri(str);
-                        }
-
-                    default:
-                        {
-                            Hashtable table = new Hashtable();
-                            IntPtr ptr = ObjC.msgSend(obj, data);
-                            object value;
-                            if (ptr != IntPtr.Zero)
-                            {
-                                value = ObjectFromIntPtr(ptr);
-                            }
-                            else
-                            {
-                                value = null;
-                            }
-                            table.Add(keyAEDescType, type);
-                            table.Add(keyAEData, value);
-                            return table;
-                        }
-                }
             }
 
             if (NSObject.IsKindOfClass(obj, NSClass.NSNumber))
@@ -371,13 +409,6 @@ namespace RhubarbGeekNz.AppleScript
                 return value;
             }
 
-            if (NSObject.IsKindOfClass(obj, NSClass.NSDate))
-            {
-                double seconds = ObjC.msgSend_fpret(obj, timeIntervalSince1970);
-                DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(0);
-                return dateTimeOffset.UtcDateTime.AddSeconds(seconds);
-            }
-
             if (NSObject.IsKindOfClass(obj, NSClass.NSConcreteValue))
             {
                 String objCType = NSValue.ObjCType(obj);
@@ -394,11 +425,6 @@ namespace RhubarbGeekNz.AppleScript
                         valDict[keyAEData] = bytes;
                         return valDict;
                 }
-            }
-
-            if (NSObject.IsKindOfClass(obj, NSClass.NSData))
-            {
-                return NSData.GetBytes(obj);
             }
 
             if (NSObject.IsKindOfClass(obj, NSClass.NSDictionary))
@@ -439,15 +465,6 @@ namespace RhubarbGeekNz.AppleScript
             }
 
             throw new Exception("unknown class " + ObjC.GetObjCClassName(obj));
-        }
-
-        internal static object SendAppleEvent(IntPtr obj, long options, double timeOut, out object errorDesc)
-        {
-            IntPtr result = ObjC.msgSend(obj, sendEventWithOptions, options, timeOut, out IntPtr err);
-
-            errorDesc = err == IntPtr.Zero ? null : ObjectFromIntPtr(err);
-
-            return result == IntPtr.Zero ? null : ObjectFromIntPtr(result);
         }
     }
 }

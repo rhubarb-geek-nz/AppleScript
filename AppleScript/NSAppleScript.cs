@@ -23,9 +23,10 @@ namespace RhubarbGeekNz.AppleScript
 
             if (handlerParam != null)
             {
-                IntPtr handlerDesc = NSAppleEventDescriptor.DescriptorFromObject(handlerParam);
-                IntPtr listParameters = NSAppleEventDescriptor.DescriptorFromObject(args);
-                IntPtr targetDesc = NSAppleEventDescriptor.DescriptorFromObject(null);
+                NSAppleEventDescriptor desc = new NSAppleEventDescriptor();
+                IntPtr handlerDesc = desc.DescriptorFromObject(handlerParam);
+                IntPtr listParameters = desc.DescriptorFromObject(args);
+                IntPtr targetDesc = desc.DescriptorFromObject(null);
                 IntPtr eventDesc = ObjC.msgSend(NSClass.NSAppleEventDescriptor, appleEventWithEventClass, kASAppleScriptSuite, kASSubroutineEvent, targetDesc, -1, 0);
                 ObjC.msgSend(eventDesc, setParamDescriptor, handlerDesc, NSAppleEventDescriptor.keyASSubroutineName);
                 ObjC.msgSend(eventDesc, setParamDescriptor, listParameters, NSAppleEventDescriptor.keyDirectObject);
@@ -39,7 +40,7 @@ namespace RhubarbGeekNz.AppleScript
 
             errorDict = outError == IntPtr.Zero ? null : NSAppleEventDescriptor.ObjectFromIntPtr(outError);
 
-            return resultPtr == IntPtr.Zero ? null : NSAppleEventDescriptor.ObjectFromIntPtr(resultPtr);
+            return resultPtr == IntPtr.Zero ? null : NSAppleEventDescriptor.ObjectFromDescriptor(resultPtr);
         }
     }
 }
