@@ -56,18 +56,18 @@ catch
 
 'return "Hello World"' | Invoke-AppleScript
 
-"-- echo instance of class and convert to Json"
+"-- echo instance of class"
 
-class Customer {
+class Person {
     [string]$Name
     [int]$Age
 
-    Customer([string]$name, [int]$age) {
+    Person([string]$name, [int]$age) {
         $this.Name  = $name
         $this.Age = $age
     }
 }
 
-New-Object -TypeName Customer -ArgumentList 'Dennis',37 | Invoke-AppleScript -FileInfo "$PSScriptRoot/test.applescript" echo | ConvertTo-Json
+New-Object -TypeName Person -ArgumentList 'Dennis',37 | Invoke-AppleScript -FileInfo "$PSScriptRoot/test.applescript" echo
 
 "-- done"
