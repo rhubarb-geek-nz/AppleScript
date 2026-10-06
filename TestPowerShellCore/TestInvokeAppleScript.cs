@@ -7,6 +7,9 @@ using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Xml;
 
 namespace RhubarbGeekNz.AppleScript
 {
@@ -924,6 +927,72 @@ namespace RhubarbGeekNz.AppleScript
 
                 Assert.IsTrue(errorNumber.HasValue);
                 Assert.AreEqual(-2753, errorNumber);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoFileInfo()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                FileInfo fileInfo = new FileInfo(testAppleScriptPath);
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new FileInfo[] { fileInfo })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                Uri result = (Uri)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("file://" + fileInfo.FullName, result.ToString());
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoJson()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                JsonNode node = JsonNode.Parse("42");
+
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new JsonNode[] { node })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("42", result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoXml()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                XmlDocument xml = new XmlDocument();
+                xml.LoadXml("<doc/>");
+
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new XmlNode[] { xml })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("<doc />", result);
             }
         }
     }

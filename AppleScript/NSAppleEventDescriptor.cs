@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Management.Automation;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -72,6 +73,13 @@ namespace RhubarbGeekNz.AppleScript
         internal const Int32 keyDirectObject = 0x2D2D2D2D; // ----
         internal const Int32 keyASSubroutineName = 0x736E616D; // snam
 
+        internal static IntPtr FromString(String str)
+        {
+            if (str == null) return ObjC.msgSend(NSClass.NSAppleEventDescriptor, nullDescriptor);
+            IntPtr strPtr = NSString.FromString(str);
+            return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
+        }
+
         private static readonly IDictionary<Type, Func<object, IntPtr>> descriptorFromTable = new Dictionary<Type, Func<object, IntPtr>>()
         {
             {typeof(bool),o=>{bool b=(bool)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithBoolean, b);}},
@@ -89,10 +97,8 @@ namespace RhubarbGeekNz.AppleScript
             {typeof(double),o=>{double d=(double)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, d);;}},
             {typeof(float),o=>{float d=(float)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, (double)d);;}},
             {typeof(decimal),o=>{decimal d=(decimal)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, (double)d);;}},
-            {typeof(char),o=>{String str=new String(new char[]{(char)o}); IntPtr strPtr=NSString.FromString(str);
-                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);}},
-            {typeof(String),o=>{String str=(String)o; IntPtr strPtr=NSString.FromString(str);
-                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);}}
+            {typeof(char),o=>{return FromString(new String(new char[]{(char)o}));}},
+            {typeof(String),o=>{return FromString((String)o);}}
         };
 
         internal IntPtr DescriptorFromObject(object obj)
@@ -119,21 +125,24 @@ namespace RhubarbGeekNz.AppleScript
 
             if (obj is Uri uri)
             {
-                IntPtr valuePtr = NSString.FromString(uri.ToString());
-                IntPtr uriPtr = ObjC.msgSend(NSClass.NSURL, URLWithString, valuePtr);
+                IntPtr uriPtr = ObjC.msgSend(NSClass.NSURL, URLWithString, NSString.FromString(uri.ToString()));
                 return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithFileURL, uriPtr);
             }
 
             if (obj is XmlNode xml)
             {
-                IntPtr strPtr = NSString.FromString(xml.OuterXml);
-                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
+                return FromString(xml.OuterXml);
             }
 
             if (obj is JsonNode node)
             {
-                IntPtr strPtr = NSString.FromString(JsonSerializer.Serialize(node));
-                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
+                return FromString(JsonSerializer.Serialize(node));
+            }
+
+            if (obj is FileInfo fileInfo)
+            {
+                IntPtr uriPtr = ObjC.msgSend(NSClass.NSURL, fileURLWithPath, NSString.FromString(fileInfo.FullName));
+                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithFileURL, uriPtr);
             }
 
             if (nesting > 20)
@@ -244,8 +253,7 @@ namespace RhubarbGeekNz.AppleScript
                         {
                             if (!gm.IsStatic)
                             {
-                                IntPtr strPtr = NSString.FromString(prop.Name);
-                                IntPtr key = ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
+                                IntPtr key = FromString(prop.Name);
                                 IntPtr value = DescriptorFromObject(prop.GetValue(obj));
                                 ObjC.msgSend(list, insertDescriptorAtIndex, key, n++);
                                 ObjC.msgSend(list, insertDescriptorAtIndex, value, n++);

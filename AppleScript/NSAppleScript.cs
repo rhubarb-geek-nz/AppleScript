@@ -24,7 +24,7 @@ namespace RhubarbGeekNz.AppleScript
             if (handlerParam != null)
             {
                 NSAppleEventDescriptor desc = new NSAppleEventDescriptor();
-                IntPtr handlerDesc = desc.DescriptorFromObject(handlerParam);
+                IntPtr handlerDesc = NSAppleEventDescriptor.FromString(handlerParam);
                 IntPtr listParameters = desc.DescriptorFromObject(args);
                 IntPtr targetDesc = desc.DescriptorFromObject(null);
                 IntPtr eventDesc = ObjC.msgSend(NSClass.NSAppleEventDescriptor, appleEventWithEventClass, kASAppleScriptSuite, kASSubroutineEvent, targetDesc, -1, 0);
