@@ -78,16 +78,20 @@ namespace RhubarbGeekNz.AppleScript
             {typeof(byte),o=>{byte b=(byte)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)b);}},
             {typeof(SByte),o=>{SByte sb=(SByte)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)sb);}},
             {typeof(Int16),o=>{Int16 i16=(Int16)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i16);}},
-            {typeof(UInt16),o=>{UInt16 i16=(UInt16)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i16);}},
+            {typeof(UInt16),o=>{UInt16 u16=(UInt16)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)u16);}},
             {typeof(Int32),o=>{Int32 i32=(Int32)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, i32);}},
-            {typeof(UInt32),o=>{UInt32 i32=(UInt32)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i32);}},
+            {typeof(UInt32),o=>{UInt32 u32=(UInt32)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)u32);}},
             {typeof(Int64),o=>{Int64 i64=(Int64)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i64);}},
-            {typeof(UInt64),o=>{UInt64 i64=(UInt64)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i64);}},
+            {typeof(UInt64),o=>{UInt64 u64=(UInt64)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)u64);}},
+            {typeof(Int128),o=>{Int128 i128=(Int128)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)i128);}},
+            {typeof(UInt128),o=>{UInt128 u128=(UInt128)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, (int)u128);}},
             {typeof(IntPtr),o=>{IntPtr iPtr=(IntPtr)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithInt32, iPtr.ToInt32());}},
             {typeof(double),o=>{double d=(double)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, d);;}},
             {typeof(float),o=>{float d=(float)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, (double)d);;}},
             {typeof(decimal),o=>{decimal d=(decimal)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, (double)d);;}},
-            {typeof(String),o=>{ String str=(String)o; IntPtr strPtr=NSString.FromString(str);
+            {typeof(char),o=>{String str=new String(new char[]{(char)o}); IntPtr strPtr=NSString.FromString(str);
+                return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);}},
+            {typeof(String),o=>{String str=(String)o; IntPtr strPtr=NSString.FromString(str);
                 return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);}}
         };
 

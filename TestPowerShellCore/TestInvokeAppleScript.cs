@@ -167,13 +167,33 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public void TestEchoInt8()
+        public void TestEchoByte()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
                 powerShell.AddCommand(InvokeAppleScript)
                     .AddParameter(ScriptBlock, echoScript)
                     .AddParameter(ArgumentList, new byte[] { 97 })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                int result = (int)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual(97, result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoSByte()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new System.SByte[] { 97 })
                     .AddParameter(SubroutineName, echoSubroutineName);
 
                 var outputPipeline = powerShell.Invoke();
@@ -207,6 +227,46 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
+        public void TestEchoUInt16()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new UInt16[] { 97 })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                int result = (int)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual(97, result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoChar()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new char[] { 'A' })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("A", result);
+            }
+        }
+
+        [TestMethod]
         public void TestEchoInt32()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
@@ -214,6 +274,86 @@ namespace RhubarbGeekNz.AppleScript
                 powerShell.AddCommand(InvokeAppleScript)
                     .AddParameter(ScriptBlock, echoScript)
                     .AddParameter(ArgumentList, new Int32[] { 97 })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                int result = (int)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual(97, result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoUInt32()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new UInt32[] { 97 })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                int result = (int)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual(97, result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoUInt64()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new UInt64[] { 97L })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                int result = (int)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual(97, result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoUInt128()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new UInt128[] { 97L })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                int result = (int)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual(97, result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoInt128()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new Int128[] { 97L })
                     .AddParameter(SubroutineName, echoSubroutineName);
 
                 var outputPipeline = powerShell.Invoke();
