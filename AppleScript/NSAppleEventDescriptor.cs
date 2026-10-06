@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Management.Automation;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -224,6 +225,11 @@ namespace RhubarbGeekNz.AppleScript
                         ObjC.msgSend(desc, setDescriptorForKeyword, list, keyASUserRecordFields);
                     }
                     return desc;
+                }
+
+                if (obj is IEnumerable<char> chars)
+                {
+                    return FromString(new string(chars.ToArray()));
                 }
 
                 if (obj is IEnumerable e)

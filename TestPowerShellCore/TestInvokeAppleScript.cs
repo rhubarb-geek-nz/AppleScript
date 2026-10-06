@@ -995,5 +995,25 @@ namespace RhubarbGeekNz.AppleScript
                 Assert.AreEqual("<doc />", result);
             }
         }
+
+        [TestMethod]
+        public void TestEchoCharArray()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new char[][] { "foo".ToCharArray() })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo", result);
+            }
+        }
     }
 }
