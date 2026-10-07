@@ -152,9 +152,9 @@ namespace RhubarbGeekNz.AppleScript
                 return FromString(JsonSerializer.Serialize(node));
             }
 
-            if (obj is FileInfo fileInfo)
+            if (obj is FileSystemInfo fileSystemInfo)
             {
-                IntPtr uriPtr = ObjC.msgSend(NSClass.NSURL, fileURLWithPath, NSString.FromString(fileInfo.FullName));
+                IntPtr uriPtr = ObjC.msgSend(NSClass.NSURL, fileURLWithPath, NSString.FromString(fileSystemInfo.FullName));
                 return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithFileURL, uriPtr);
             }
 
