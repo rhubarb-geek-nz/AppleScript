@@ -160,7 +160,7 @@ namespace RhubarbGeekNz.AppleScript
 
             if (nesting > 20)
             {
-                throw new ParseException();
+                return FromString(obj.ToString());
             }
 
             if (obj is IEnumerable<byte> bytes)
