@@ -3,21 +3,24 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml;
 
 namespace RhubarbGeekNz.AppleScript
 {
-    public class Customer
+    public class Person
     {
         public String Name { get; set; }
         public int Age { get; set; }
-        public Customer(String n, int a)
+        public Person(String n, int a)
         {
             Name = n;
             Age = a;
@@ -585,14 +588,14 @@ namespace RhubarbGeekNz.AppleScript
         }
 
         [TestMethod]
-        public void TestEchoCustomer()
+        public void TestEchoPerson()
         {
             using (PowerShell powerShell = PowerShell.Create(initialSessionState))
             {
                 powerShell.AddCommand(InvokeAppleScript)
                     .AddParameter(ScriptBlock, echoScript)
                     .AddParameter(SubroutineName, echoSubroutineName)
-                    .AddParameter(ArgumentList, new Customer("Dennis", 37));
+                    .AddParameter(ArgumentList, new Person("Dennis", 37));
 
                 var outputPipeline = powerShell.Invoke();
 
@@ -1013,6 +1016,66 @@ namespace RhubarbGeekNz.AppleScript
                 String result = (String)outputPipeline[0].BaseObject;
 
                 Assert.AreEqual("foo", result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoCharList()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new List<char>[] { "foo".ToList() })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                String result = (String)outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo", result);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoByteList()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new List<byte>[] { Encoding.ASCII.GetBytes("foo").ToList() })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                byte[] result = (byte[])outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo", Encoding.ASCII.GetString(result));
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoByteArray()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new byte[][] { Encoding.ASCII.GetBytes("foo") })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                byte[] result = (byte[])outputPipeline[0].BaseObject;
+
+                Assert.AreEqual("foo", Encoding.ASCII.GetString(result));
             }
         }
     }

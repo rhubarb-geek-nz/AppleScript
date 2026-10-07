@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml;
@@ -39,6 +40,7 @@ namespace RhubarbGeekNz.AppleScript
         internal static IntPtr descriptorWithDouble = ObjC.sel_registerName("descriptorWithDouble:");
         internal static IntPtr dateWithTimeIntervalSince1970 = ObjC.sel_registerName("dateWithTimeIntervalSince1970:");
         internal static IntPtr descriptorWithDate = ObjC.sel_registerName("descriptorWithDate:");
+        internal static IntPtr descriptorWithDescriptorTypeData = ObjC.sel_registerName("descriptorWithDescriptorType:data:");
         internal static IntPtr URLWithString = ObjC.sel_registerName("URLWithString:");
         internal static IntPtr descriptorWithFileURL = ObjC.sel_registerName("descriptorWithFileURL:");
         internal static IntPtr fileURLValue = ObjC.sel_registerName("fileURLValue");
@@ -67,6 +69,7 @@ namespace RhubarbGeekNz.AppleScript
         internal const Int32 typeSInt16 = 0x73686F72; // shor
         internal const Int32 typeLongDateTime = 0x6C647420; // ldt
         internal const Int32 typeAEList = 0x6C697374; // list
+        internal const Int32 typeData = 0x64617461; // data
         internal const Int32 keyASUserRecordFields = 0x75737266; // usrf
         internal const Int32 keyAEDescType = 0x64737470; // dstp
         internal const Int32 keyAEData = 0x64617461; // data
@@ -79,6 +82,13 @@ namespace RhubarbGeekNz.AppleScript
             if (str == null) return ObjC.msgSend(NSClass.NSAppleEventDescriptor, nullDescriptor);
             IntPtr strPtr = NSString.FromString(str);
             return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithString, strPtr);
+        }
+
+        internal static IntPtr FromBytes(Int32 descType, byte[] data)
+        {
+            if (data == null) return ObjC.msgSend(NSClass.NSAppleEventDescriptor, nullDescriptor);
+            IntPtr ptr = NSData.FromBytes(data);
+            return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDescriptorTypeData, descType, ptr);
         }
 
         private static readonly IDictionary<Type, Func<object, IntPtr>> descriptorFromTable = new Dictionary<Type, Func<object, IntPtr>>()
@@ -99,6 +109,8 @@ namespace RhubarbGeekNz.AppleScript
             {typeof(float),o=>{float d=(float)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, (double)d);;}},
             {typeof(decimal),o=>{decimal d=(decimal)o; return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithDouble, (double)d);;}},
             {typeof(char),o=>{return FromString(new String(new char[]{(char)o}));}},
+            {typeof(byte[]),o=>{return FromBytes(typeData,(byte[])o);}},
+            {typeof(char[]),o=>{return FromString(new String((char[])o));}},
             {typeof(String),o=>{return FromString((String)o);}}
         };
 
@@ -149,6 +161,16 @@ namespace RhubarbGeekNz.AppleScript
             if (nesting > 20)
             {
                 throw new ParseException();
+            }
+
+            if (obj is IEnumerable<byte> bytes)
+            {
+                return FromBytes(typeData, bytes.ToArray());
+            }
+
+            if (obj is IEnumerable<char> chars)
+            {
+                return FromString(new string(chars.ToArray()));
             }
 
             nesting++;
@@ -227,11 +249,6 @@ namespace RhubarbGeekNz.AppleScript
                     return desc;
                 }
 
-                if (obj is IEnumerable<char> chars)
-                {
-                    return FromString(new string(chars.ToArray()));
-                }
-
                 if (obj is IEnumerable e)
                 {
                     IntPtr listParams = ObjC.msgSend(NSClass.NSAppleEventDescriptor, listDescriptor);
@@ -287,6 +304,9 @@ namespace RhubarbGeekNz.AppleScript
             {typeFalse,obj=>{return false;}},
             {typeChar,obj=>{return NSString.ToString(ObjC.msgSend(obj, stringValue));}},
             {typeUnicodeText,obj=>{return NSString.ToString(ObjC.msgSend(obj, stringValue));}},
+            {typeData,obj=>{
+                IntPtr ptr=ObjC.msgSend(obj,data);
+                return NSData.GetBytes(ptr);}},
             {typeLongDateTime,obj=>{
                 IntPtr dateObj = ObjC.msgSend(obj, dateValue);
                 double seconds = ObjC.msgSend_fpret(dateObj, timeIntervalSince1970);
