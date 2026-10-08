@@ -1078,5 +1078,54 @@ namespace RhubarbGeekNz.AppleScript
                 Assert.AreEqual("foo", Encoding.ASCII.GetString(result));
             }
         }
+
+        [TestMethod]
+        public void TestEchoType()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                bool wasCaught = false;
+
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new Type[] { GetType() })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                try
+                {
+                    powerShell.Invoke();
+                }
+                catch (CmdletInvocationException)
+                {
+                    wasCaught = true;
+                }
+
+                Assert.IsTrue(wasCaught);
+            }
+        }
+
+        [TestMethod]
+        public void TestEchoRecursive()
+        {
+            using (PowerShell powerShell = PowerShell.Create(initialSessionState))
+            {
+                object[] list = { null };
+
+                list[0] = list;
+
+                powerShell.AddCommand(InvokeAppleScript)
+                    .AddParameter(ScriptBlock, echoScript)
+                    .AddParameter(ArgumentList, new object[][] { list })
+                    .AddParameter(SubroutineName, echoSubroutineName);
+
+                var outputPipeline = powerShell.Invoke();
+
+                Assert.AreEqual(1, outputPipeline.Count);
+
+                object[] result = (object[])outputPipeline[0].BaseObject;
+
+                Assert.AreEqual(1, result.Length);
+            }
+        }
     }
 }

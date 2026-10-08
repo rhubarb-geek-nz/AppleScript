@@ -17,13 +17,13 @@ namespace RhubarbGeekNz.AppleScript
         static IntPtr appleEventWithEventClass = ObjC.sel_registerName("appleEventWithEventClass:eventID:targetDescriptor:returnID:transactionID:");
         static IntPtr setParamDescriptor = ObjC.sel_registerName("setParamDescriptor:forKeyword:");
 
-        static internal object Invoke(IntPtr appleScript, String handlerParam, object[] args, out object errorDict)
+        static internal object Invoke(IntPtr appleScript, String handlerParam, object[] args, out object errorDict, int depth)
         {
             IntPtr outError, resultPtr;
 
             if (handlerParam != null)
             {
-                NSAppleEventDescriptor desc = new NSAppleEventDescriptor();
+                NSAppleEventDescriptor desc = new NSAppleEventDescriptor(depth);
                 IntPtr handlerDesc = NSAppleEventDescriptor.FromString(handlerParam);
                 IntPtr listParameters = desc.DescriptorFromObject(args);
                 IntPtr targetDesc = desc.DescriptorFromObject(null);

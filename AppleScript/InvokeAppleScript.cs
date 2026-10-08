@@ -40,6 +40,9 @@ namespace RhubarbGeekNz.AppleScript
         [Parameter(Position = 2, ValueFromPipeline = true, ParameterSetName = ParameterSetNameUri)]
         public object[] ArgumentList;
 
+        [Parameter]
+        public int Depth = 5;
+
         protected override void ProcessRecord()
         {
             using var pool = new NSAutoreleasePool();
@@ -80,7 +83,7 @@ namespace RhubarbGeekNz.AppleScript
 
             if (errorDict == null)
             {
-                result = NSAppleScript.Invoke(appleScript, SubroutineName, ArgumentList, out errorDict);
+                result = NSAppleScript.Invoke(appleScript, SubroutineName, ArgumentList, out errorDict, Depth);
             }
 
             if (errorDict != null)

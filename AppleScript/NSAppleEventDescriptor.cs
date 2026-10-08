@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
-using System.Management.Automation.Runspaces;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml;
@@ -16,9 +15,11 @@ namespace RhubarbGeekNz.AppleScript
 {
     internal class NSAppleEventDescriptor
     {
-        int nesting = 0;
-        internal NSAppleEventDescriptor()
+        private int nesting = 0;
+        private readonly int depth;
+        internal NSAppleEventDescriptor(int depth)
         {
+            this.depth = depth;
         }
 
         internal static IntPtr stringValue = ObjC.sel_registerName("stringValue");
@@ -158,7 +159,7 @@ namespace RhubarbGeekNz.AppleScript
                 return ObjC.msgSend(NSClass.NSAppleEventDescriptor, descriptorWithFileURL, uriPtr);
             }
 
-            if (nesting > 20)
+            if (nesting > depth)
             {
                 return FromString(obj.ToString());
             }
@@ -272,15 +273,12 @@ namespace RhubarbGeekNz.AppleScript
                     {
                         var gm = prop.GetMethod;
 
-                        if (gm != null)
+                        if (gm != null && !gm.IsStatic && prop.CanRead && prop.GetIndexParameters().Length == 0)
                         {
-                            if (!gm.IsStatic)
-                            {
-                                IntPtr key = FromString(prop.Name);
-                                IntPtr value = DescriptorFromObject(prop.GetValue(obj));
-                                ObjC.msgSend(list, insertDescriptorAtIndex, key, n++);
-                                ObjC.msgSend(list, insertDescriptorAtIndex, value, n++);
-                            }
+                            IntPtr key = FromString(prop.Name);
+                            IntPtr value = DescriptorFromObject(prop.GetValue(obj));
+                            ObjC.msgSend(list, insertDescriptorAtIndex, key, n++);
+                            ObjC.msgSend(list, insertDescriptorAtIndex, value, n++);
                         }
                     }
                     ObjC.msgSend(desc, setDescriptorForKeyword, list, keyASUserRecordFields);
