@@ -6,13 +6,13 @@ AppleScript for PowerShell
 This runs [AppleScript](https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html) either from text in memory or a file.
 
 ```
-Invoke-AppleScript -InputScript <string> [-SubroutineName <string>] [-ArgumentList <Object[]>] [<CommonParameters>]
+Invoke-AppleScript -InputScript <string> [-SubroutineName <string>] [-ArgumentList <Object[]>] [-Depth <int>] [<CommonParameters>]
 
-Invoke-AppleScript [-ScriptBlock] <string> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [<CommonParameters>]
+Invoke-AppleScript [-ScriptBlock] <string> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [-Depth <int>] [<CommonParameters>]
 
-Invoke-AppleScript [-FileInfo] <FileInfo> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [<CommonParameters>]
+Invoke-AppleScript [-FileInfo] <FileInfo> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [-Depth <int>] [<CommonParameters>]
 
-Invoke-AppleScript [-Uri] <uri> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [<CommonParameters>]
+Invoke-AppleScript [-Uri] <uri> [[-SubroutineName] <string>] [[-ArgumentList] <Object[]>] [-Depth <int>] [<CommonParameters>]
 ```
 
 See [test.ps1](test.ps1) for examples. This demonstrates using [test.applescript](test.applescript) as a library of [AppleScript handlers](https://developer.apple.com/library/archive/documentation/LanguagesUtilities/Conceptual/MacAutomationScriptingGuide/UseHandlersFunctions.html).
